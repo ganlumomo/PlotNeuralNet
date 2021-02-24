@@ -1,6 +1,14 @@
 
 from .tikzeng import *
 
+# define some parameters
+# s_filer: output_image_size
+# n_filer: output_channels
+# height = depth = s_filer / SIZE_TO_HEIGHT
+# width = n_filer / CHANNELS_TO_WIDTH
+SIZE_TO_HEIGHT = 10
+CHANNELS_TO_WIDTH = 32
+
 #define new block
 def block_2ConvPool( name, botton, top, s_filer=256, n_filer=64, offset="(1,0,0)", size=(32,32,3.5), opacity=0.5 ):
     return [
