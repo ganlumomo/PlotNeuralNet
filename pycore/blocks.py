@@ -10,6 +10,41 @@ SIZE_TO_HEIGHT = 10
 CHANNELS_TO_WIDTH = 32
 
 #define new block
+def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(1,0,0)", channels=(128,128), stride=1):
+    lys = []
+
+    is_bottleneck = len(channels) ==3
+    need_proj_conv = stride != 1 or n_filer != channels[-1]
+
+    bn1 = [to_BnRelu(name="{}_bn1".format(name), offset=offset, to="({}-east)".format(bottom), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
+
+    if not is_bottleneck:
+        layers = [
+            to_Conv(name="{}_conv1".format(name), s_filer=s_filer, n_filer=channels[0], offset="(1,0,0)", to="({}_bn1-east)".format(name), width=channels[0]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+            to_BnRelu(name="{}_bn2".format(name), to="({}_conv1-east)".format(name), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+            to_Conv(name="{}_conv2".format(name), s_filer=s_filer, n_filer=channels[1], to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+        ]
+
+    if need_proj_conv:
+        proj_conv = [to_Conv(name="{}_proj_conv".format(name), s_filer=s_filer, n_filer=channels[-1], offset="(1,0,5)", to="({}_bn1-east)".format(name), width=channels[-1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
+        
+    if need_proj_conv:
+        lys += bn1
+        lys += proj_conv
+    else:
+        pass
+
+    if is_bottleneck:
+        pass
+    else:
+        lys += layers
+
+    lys += [
+        to_Sum(name="{}_sum".format(name), to="({}_conv2-east)".format(name))
+        ]
+
+    return lys
+
 def block_2ConvPool( name, botton, top, s_filer=256, n_filer=64, offset="(1,0,0)", size=(32,32,3.5), opacity=0.5 ):
     return [
     to_ConvConvRelu( 

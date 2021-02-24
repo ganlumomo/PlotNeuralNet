@@ -14,6 +14,7 @@ def to_head( projectpath ):
 def to_cor():
     return r"""
 \def\ConvColor{rgb:yellow,5;red,2.5;white,5}
+\def\BnColor{rgb:red,0.36;green,0.54;blue,0.66}
 \def\ConvReluColor{rgb:yellow,5;red,5;white,5}
 \def\PoolColor{rgb:red,1;black,0.3}
 \def\UnpoolColor{rgb:blue,2;green,1;black,0.3}
@@ -47,11 +48,27 @@ def to_Conv( name, s_filer=256, n_filer=64, offset="(0,0,0)", to="(0,0,0)", widt
     {Box={
         name=""" + name +""",
         caption="""+ caption +r""",
-        xlabel={{"""+ str(n_filer) +""", }},
-        zlabel="""+ str(s_filer) +""",
+        xlabel={{"""+ str(int(n_filer)) +""", }},
+        zlabel="""+ str(int(s_filer)) +""",
         fill=\ConvColor,
         height="""+ str(height) +""",
         width="""+ str(width) +""",
+        depth="""+ str(depth) +"""
+        }
+    };
+"""
+
+# Bn,Relu
+def to_BnRelu(name, offset="(0,0,0)", to="(0,0,0)", width=1, height=40, depth=40, caption=" "):
+    return r"""
+\pic[shift={ """+ offset +""" }] at """+ to +""" 
+    {RightBandedBox={
+        name="""+ name +""",
+        caption="""+ caption +""",
+        fill=\BnColor,
+        bandfill=\ConvReluColor,
+        height="""+ str(height) +""",
+        width={ """+ str(width) +""" },
         depth="""+ str(depth) +"""
         }
     };
