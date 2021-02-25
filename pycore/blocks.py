@@ -40,7 +40,7 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
         lys += layers
 
     lys += [
-        to_Sum(name="{}_sum".format(name), to="({}_conv2-east)".format(name))
+        to_Sum(name="{}_end".format(name), to="({}_conv2-east)".format(name))
         ]
 
     return lys
