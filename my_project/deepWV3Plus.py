@@ -29,14 +29,29 @@ arch = [
     #to_connection("pool2", "soft1"),
     #to_end()
     ]
+
+current_size = init_size
 for mod_id, num in enumerate(structure):
-  if mod_id < 2:
-    arch += [to_Pool("pool{}".format(mod_id+2), to="(mod1-east)", height=init_size/2/SIZE_TO_HEIGHT, depth=init_size/2/SIZE_TO_HEIGHT, caption="pool{}".format(mod_id+2)),]
+  if mod_id > 3:
+    continue
+  
+  if mod_id == 0:
+    current_size /= 2
+    arch += [to_Pool("pool{}".format(mod_id+2), to="(mod1-east)", height=current_size/SIZE_TO_HEIGHT, depth=current_size/SIZE_TO_HEIGHT, caption="pool{}".format(mod_id+2)),]
+  if mod_id == 1:
+    current_size /= 2
+    arch += [to_Pool("pool{}".format(mod_id+2), to="(m2_end_end-east)", height=current_size/SIZE_TO_HEIGHT, depth=current_size/SIZE_TO_HEIGHT, caption="pool{}".format(mod_id+2)),]
+  
   for block_id in range(num):
     if block_id == 0:
-      arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="pool2", s_filer=init_size/2, n_filer=init_channels),]
+      if mod_id == 0:
+        arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="pool2", s_filer=current_size, n_filer=init_channels, channels=channels[mod_id], caption="mod{}".format(mod_id+2)),]
+      else:
+        arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="m{}_end_end".format(mod_id+1), s_filer=current_size, n_filer=init_channels, channels=channels[mod_id], caption="mod{}".format(mod_id+2)),]
+    elif block_id == num-1:
+      arch += [*block_IdentityResidualBlock("m{}_end".format(mod_id+2), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=current_size, n_filer=init_channels, channels=channels[mod_id]),]
     else:
-      arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=init_size/2, n_filer=init_channels),]
+      arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=current_size, n_filer=init_channels, channels=channels[mod_id]),]
 
 
 arch += [to_end(),]

@@ -10,13 +10,13 @@ SIZE_TO_HEIGHT = 10
 CHANNELS_TO_WIDTH = 32
 
 #define new block
-def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(1,0,0)", channels=(128,128), stride=1):
+def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(1,0,0)", channels=(128,128), stride=1, caption=""):
     lys = []
 
     is_bottleneck = len(channels) ==3
     need_proj_conv = stride != 1 or n_filer != channels[-1]
 
-    bn1 = [to_BnRelu(name="{}_bn1".format(name), offset=offset, to="({}-east)".format(bottom), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
+    bn1 = [to_BnRelu(name="{}_bn1".format(name), offset=offset, to="({}-east)".format(bottom), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT, caption=caption)]
 
     if not is_bottleneck:
         layers = [
