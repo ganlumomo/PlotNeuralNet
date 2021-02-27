@@ -7,7 +7,7 @@ from .tikzeng import *
 # height = depth = s_filer / SIZE_TO_HEIGHT
 # width = n_filer / CHANNELS_TO_WIDTH
 SIZE_TO_HEIGHT = 10
-CHANNELS_TO_WIDTH = 32
+CHANNELS_TO_WIDTH = 64
 
 #define new block
 def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(1,0,0)", channels=(128,128), stride=1, caption=""):
@@ -20,13 +20,13 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
 
     if not is_bottleneck:
         layers = [
-            to_Conv(name="{}_conv1".format(name), s_filer=s_filer, n_filer=channels[0], offset="(1,0,0)", to="({}_bn1-east)".format(name), width=channels[0]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+            to_Conv(name="{}_conv1".format(name), s_filer=s_filer, n_filer=channels[0], to="({}_bn1-east)".format(name), width=channels[0]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
             to_BnRelu(name="{}_bn2".format(name), to="({}_conv1-east)".format(name), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
             to_Conv(name="{}_conv2".format(name), s_filer=s_filer, n_filer=channels[1], to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
         ]
 
     if need_proj_conv:
-        proj_conv = [to_Conv(name="{}_proj_conv".format(name), s_filer=s_filer, n_filer=channels[-1], offset="(1,0,5)", to="({}_bn1-east)".format(name), width=channels[-1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
+        proj_conv = [to_Conv(name="{}_proj_conv".format(name), s_filer=s_filer, n_filer=channels[-1], offset="(0,0,5)", to="({}_bn1-east)".format(name), width=channels[-1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
         
     if need_proj_conv:
         lys += bn1
