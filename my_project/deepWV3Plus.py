@@ -43,19 +43,25 @@ for mod_id, num in enumerate(structure):
     current_size /= 2 # becasue of pool2
     arch += [to_Pool("pool{}".format(mod_id+2), to="(m2_end_end-east)", height=current_size/SIZE_TO_HEIGHT, depth=current_size/SIZE_TO_HEIGHT, caption="pool{}".format(mod_id+2)),]
   
+
+  in_channels = init_channels
   for block_id in range(num):
+    
     stride = 2 if block_id == 0 and mod_id == 2 else 1
     current_size /= 2 if block_id == 0 and mod_id == 2 else 1
+        
+
     if block_id == 0:
       if mod_id == 0:
-        arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="pool2", s_filer=current_size, n_filer=init_channels, channels=channels[mod_id], stride=stride, caption="mod{}".format(mod_id+2)),]
+        arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="pool2", s_filer=current_size, n_filer=in_channels, channels=channels[mod_id], stride=stride, caption="mod{}".format(mod_id+2)),]
       else:
-        arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="m{}_end_end".format(mod_id+1), s_filer=current_size, n_filer=init_channels, channels=channels[mod_id], stride=stride, caption="mod{}".format(mod_id+2)),]
+        arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="m{}_end_end".format(mod_id+1), s_filer=current_size, n_filer=in_channels, channels=channels[mod_id], stride=stride, caption="mod{}".format(mod_id+2)),]
     elif block_id == num-1:
-      arch += [*block_IdentityResidualBlock("m{}_end".format(mod_id+2), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=current_size, n_filer=init_channels, channels=channels[mod_id], stride=stride),]
+      arch += [*block_IdentityResidualBlock("m{}_end".format(mod_id+2), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=current_size, n_filer=in_channels, channels=channels[mod_id], stride=stride),]
     else:
-      arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=current_size, n_filer=init_channels, channels=channels[mod_id], stride=stride),]
+      arch += [*block_IdentityResidualBlock("m{}_b{}".format(mod_id+2, block_id+1), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=current_size, n_filer=in_channels, channels=channels[mod_id], stride=stride),]
 
+    in_channels = channels[mod_id][-1]
 
 arch += [to_end(),]
 

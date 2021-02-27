@@ -32,7 +32,7 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
         lys += bn1
         lys += proj_conv
     else:
-        pass
+        lys += bn1
 
     if is_bottleneck:
         pass
