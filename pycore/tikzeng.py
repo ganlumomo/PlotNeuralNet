@@ -74,6 +74,25 @@ def to_BnRelu(name, offset="(0,0,0)", to="(0,0,0)", width=1, height=40, depth=40
     };
 """
 
+# Linear (Fully-Connected)
+def to_FullyConnected( name, s_filer=" ", n_filer=" ", offset="(0,0,0)", to="(0,0,0)", width=1.5, height=3, depth=25, opacity=0.8, caption=" " , zlabelposition='midway'):
+    return r"""
+\pic[shift={"""+ offset +"""}] at """+ to +""" 
+    {RightBandedBox={
+        name=""" + name +""",
+        caption=""" +caption + """,
+        xlabel={{ """+ '"'+str(n_filer) +'", "dummy"'+ """ }},
+        zlabel="""+ str(s_filer) +""",
+        fill=\FcColor,
+        bandfill=\FcReluColor,
+        opacity="""+ str(opacity) +""",
+        height="""+ str(height) +""",
+        width="""+ str(width) +""",
+        depth="""+ str(depth) +"""
+        }
+    };
+"""
+
 # Conv,Conv,relu
 # Bottleneck
 def to_ConvConvRelu( name, s_filer=256, n_filer=(64,64), offset="(0,0,0)", to="(0,0,0)", width=(2,2), height=40, depth=40, caption=" " ):

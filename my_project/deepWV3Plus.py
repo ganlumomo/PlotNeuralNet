@@ -33,7 +33,7 @@ arch = [
 
 current_size = init_size
 for mod_id, num in enumerate(structure):
-  if mod_id > 3:
+  if mod_id > 4:
     continue
   
   if mod_id == 0:

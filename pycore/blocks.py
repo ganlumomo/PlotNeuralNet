@@ -10,6 +10,14 @@ SIZE_TO_HEIGHT = 10
 CHANNELS_TO_WIDTH = 64
 
 #define new block
+def block_SElayerMultiTask(name, bottom, n_filer=64, reduction=16, task=None):
+  lys = []
+  lys += [
+    to_FullyConnected(name, n_filer=n_filer, to="({}-east)".format(bottom))
+  ]
+  return lys
+
+
 def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(1,0,0)", channels=(128,128), stride=1, caption=""):
     lys = []
 
@@ -17,6 +25,7 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
     need_proj_conv = stride != 1 or n_filer != channels[-1]
 
     bn1 = [to_BnRelu(name="{}_bn1".format(name), offset=offset, to="({}-east)".format(bottom), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT, caption=caption)]
+    lys += bn1
 
     if not is_bottleneck:
         layers = [
@@ -29,19 +38,18 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
         proj_conv = [to_Conv(name="{}_proj_conv".format(name), s_filer=s_filer, n_filer=channels[-1], offset="(0,0,5)", to="({}_bn1-east)".format(name), width=channels[-1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
         
     if need_proj_conv:
-        lys += bn1
         lys += proj_conv
     else:
-        lys += bn1
+        pass
 
     if is_bottleneck:
         pass
     else:
         lys += layers
+        lys += [to_Sum(name="{}_end".format(name), to="({}_conv2-east)".format(name))]
 
-    lys += [
-        to_Sum(name="{}_end".format(name), to="({}_conv2-east)".format(name))
-        ]
+    if is_bottleneck:
+        lys += block_SElayerMultiTask("{}_se".format(name), bottom="{}_bn1".format(name), n_filer=channels[2], task="semantic")
 
     return lys
 
