@@ -22,6 +22,7 @@ def to_cor():
 \def\FcReluColor{rgb:blue,5;red,5;white,4}
 \def\SoftmaxColor{rgb:magenta,5;black,7}   
 \def\SumColor{rgb:blue,5;green,15}
+\def\MulColor{rgb:red,0;green,1;blue,1}
 """
 
 def to_begin():
@@ -75,14 +76,34 @@ def to_BnRelu(name, offset="(0,0,0)", to="(0,0,0)", width=1, height=40, depth=40
 """
 
 # Linear (Fully-Connected)
-def to_FullyConnected( name, s_filer=" ", n_filer=" ", offset="(0,0,0)", to="(0,0,0)", width=1.5, height=3, depth=25, opacity=0.8, caption=" " , zlabelposition='midway'):
+# Fc, Sigmoid
+def to_FcSigmoid( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", width=1, height=1, depth=25, opacity=0.8, caption=" " , zlabelposition='midway'):
     return r"""
 \pic[shift={"""+ offset +"""}] at """+ to +""" 
     {RightBandedBox={
         name=""" + name +""",
         caption=""" +caption + """,
         xlabel={{ """+ '"'+str(n_filer) +'", "dummy"'+ """ }},
-        zlabel="""+ str(s_filer) +""",
+        zlabel="""+ str(int(s_filer)) +""",
+        fill=\FcColor,
+        bandfill=\SoftmaxColor,
+        opacity="""+ str(opacity) +""",
+        height="""+ str(height) +""",
+        width="""+ str(width) +""",
+        depth="""+ str(depth) +"""
+        }
+    };
+"""
+
+# Fc, Relu
+def to_FcRelu( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", width=1, height=1, depth=25, opacity=0.8, caption=" " , zlabelposition='midway'):
+    return r"""
+\pic[shift={"""+ offset +"""}] at """+ to +""" 
+    {RightBandedBox={
+        name=""" + name +""",
+        caption=""" +caption + """,
+        xlabel={{ """+ '"'+str(n_filer) +'", "dummy"'+ """ }},
+        zlabel="""+ str(int(s_filer)) +""",
         fill=\FcColor,
         bandfill=\FcReluColor,
         opacity="""+ str(opacity) +""",
@@ -214,6 +235,18 @@ def to_Sum( name, offset="(0,0,0)", to="(0,0,0)", radius=2.5, opacity=0.6):
     };
 """
 
+def to_Mul( name, offset="(0,0,0)", to="(0,0,0)", radius=2.5, opacity=0.6):
+    return r"""
+\pic[shift={"""+ offset +"""}] at """+ to +""" 
+    {Ball={
+        name=""" + name +""",
+        fill=\MulColor,
+        opacity="""+ str(opacity) +""",
+        radius="""+ str(radius) +""",
+        logo=$*$
+        }
+    };
+"""
 
 def to_connection( of, to):
     return r"""

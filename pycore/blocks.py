@@ -8,13 +8,19 @@ from .tikzeng import *
 # width = n_filer / CHANNELS_TO_WIDTH
 SIZE_TO_HEIGHT = 10
 CHANNELS_TO_WIDTH = 64
+REDUCTION = 16
 
 #define new block
 def block_SElayerMultiTask(name, bottom, n_filer=64, reduction=16, task=None):
   lys = []
+  lys += [to_Pool(name="{}_avg_pool".format(name), to="({}-east)".format(bottom), width=1, height=1, depth=n_filer/CHANNELS_TO_WIDTH)]
+  # SequentialMultiTask
   lys += [
-    to_FullyConnected(name, n_filer=n_filer, to="({}-east)".format(bottom))
+    to_FcRelu(name="{}_fc1".format(name), s_filer=n_filer/REDUCTION, to="({}_avg_pool-east)".format(name), depth=n_filer/REDUCTION/CHANNELS_TO_WIDTH, caption=task),
+    to_FcSigmoid(name="{}_fc2".format(name), s_filer=n_filer, to="({}_fc1-east)".format(name), depth=n_filer/CHANNELS_TO_WIDTH),
   ]
+  lys += [to_Mul(name="{}_mul".format(name), to="({}_fc2-east)".format(name)),
+          to_skip(of=bottom, to="{}_mul".format(name))]
   return lys
 
 
@@ -33,6 +39,15 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
             to_BnRelu(name="{}_bn2".format(name), to="({}_conv1-east)".format(name), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
             to_Conv(name="{}_conv2".format(name), s_filer=s_filer, n_filer=channels[1], to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
         ]
+    else:
+        layers = [
+            to_Conv(name="{}_conv1".format(name), s_filer=s_filer, n_filer=channels[0], to="({}_bn1-east)".format(name), width=channels[0]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+            to_BnRelu(name="{}_bn2".format(name), to="({}_conv1-east)".format(name), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+            to_Conv(name="{}_conv2".format(name), s_filer=s_filer, n_filer=channels[1], to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+            to_BnRelu(name="{}_bn3".format(name), to="({}_sum-east)".format(name), height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT),
+            to_Conv(name="{}_conv3".format(name), s_filer=s_filer, n_filer=channels[2], to="({}_bn3-east)".format(name), width=channels[2]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)
+        ]
+        
 
     if need_proj_conv:
         proj_conv = [to_Conv(name="{}_proj_conv".format(name), s_filer=s_filer, n_filer=channels[-1], offset="(0,0,5)", to="({}_bn1-east)".format(name), width=channels[-1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
@@ -49,7 +64,13 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
         lys += [to_Sum(name="{}_end".format(name), to="({}_conv2-east)".format(name))]
 
     if is_bottleneck:
-        lys += block_SElayerMultiTask("{}_se".format(name), bottom="{}_bn1".format(name), n_filer=channels[2], task="semantic")
+        lys += layers[0:2]
+        lys += [to_Conv(name="{}_semantic".format(name), s_filer=s_filer, n_filer=channels[1], offset="(0,0,2.5)", to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
+        lys += layers[2]
+        lys += [to_Sum(name="{}_sum".format(name), to="({}_conv2-east)".format(name))]
+        lys += layers[3:]
+        lys += block_SElayerMultiTask("{}_se".format(name), bottom="{}_conv3".format(name), n_filer=channels[2], task="semantic")
+        lys += [to_Sum(name="{}_end".format(name), to="({}_se_mul-east)".format(name))]
 
     return lys
 
