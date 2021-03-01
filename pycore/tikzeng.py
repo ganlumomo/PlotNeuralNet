@@ -14,6 +14,8 @@ def to_head( projectpath ):
 def to_cor():
     return r"""
 \def\ConvColor{rgb:yellow,5;red,2.5;white,5}
+\def\SemanticConvColor{rgb:red,0;green,1;blue,0}
+\def\TravConvColor{rgb:red,1;green,0.11;blue,0.81}
 \def\BnColor{rgb:red,0.36;green,0.54;blue,0.66}
 \def\ConvReluColor{rgb:yellow,5;red,5;white,5}
 \def\PoolColor{rgb:red,1;black,0.3}
@@ -43,7 +45,7 @@ def to_input( pathfile, to='(-3,0,0)', width=8, height=8, name="temp" ):
 """
 
 # Conv
-def to_Conv( name, s_filer=256, n_filer=64, offset="(0,0,0)", to="(0,0,0)", width=1, height=40, depth=40, caption=" " ):
+def to_Conv( name, s_filer=256, n_filer=64, offset="(0,0,0)", to="(0,0,0)", width=1, height=40, depth=40, caption=" ", fill="\ConvColor"):
     return r"""
 \pic[shift={"""+ offset +"""}] at """+ to +""" 
     {Box={
@@ -51,7 +53,7 @@ def to_Conv( name, s_filer=256, n_filer=64, offset="(0,0,0)", to="(0,0,0)", widt
         caption="""+ caption +r""",
         xlabel={{"""+ str(int(n_filer)) +""", }},
         zlabel="""+ str(int(s_filer)) +""",
-        fill=\ConvColor,
+        fill="""+ fill +""",
         height="""+ str(height) +""",
         width="""+ str(width) +""",
         depth="""+ str(depth) +"""
@@ -77,7 +79,7 @@ def to_BnRelu(name, offset="(0,0,0)", to="(0,0,0)", width=1, height=40, depth=40
 
 # Linear (Fully-Connected)
 # Fc, Sigmoid
-def to_FcSigmoid( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", width=1, height=1, depth=25, opacity=0.8, caption=" " , zlabelposition='midway'):
+def to_FcSigmoid( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", width=1, height=1, depth=25, opacity=0.8, caption=" " , zlabelposition='midway', fill="\FcColor"):
     return r"""
 \pic[shift={"""+ offset +"""}] at """+ to +""" 
     {RightBandedBox={
@@ -85,7 +87,7 @@ def to_FcSigmoid( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", 
         caption=""" +caption + """,
         xlabel={{ """+ '"'+str(n_filer) +'", "dummy"'+ """ }},
         zlabel="""+ str(int(s_filer)) +""",
-        fill=\FcColor,
+        fill="""+ fill +""",
         bandfill=\SoftmaxColor,
         opacity="""+ str(opacity) +""",
         height="""+ str(height) +""",
@@ -96,7 +98,7 @@ def to_FcSigmoid( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", 
 """
 
 # Fc, Relu
-def to_FcRelu( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", width=1, height=1, depth=25, opacity=0.8, caption=" " , zlabelposition='midway'):
+def to_FcRelu( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", width=1, height=1, depth=25, opacity=0.8, caption=" " , zlabelposition='midway', fill="\FcColor"):
     return r"""
 \pic[shift={"""+ offset +"""}] at """+ to +""" 
     {RightBandedBox={
@@ -104,7 +106,7 @@ def to_FcRelu( name, s_filer=" ", n_filer=1, offset="(0,0,0)", to="(0,0,0)", wid
         caption=""" +caption + """,
         xlabel={{ """+ '"'+str(n_filer) +'", "dummy"'+ """ }},
         zlabel="""+ str(int(s_filer)) +""",
-        fill=\FcColor,
+        fill="""+ fill +""",
         bandfill=\FcReluColor,
         opacity="""+ str(opacity) +""",
         height="""+ str(height) +""",
@@ -222,7 +224,7 @@ def to_SoftMax( name, s_filer=10, offset="(0,0,0)", to="(0,0,0)", width=1.5, hei
     };
 """
 
-def to_Sum( name, offset="(0,0,0)", to="(0,0,0)", radius=2.5, opacity=0.6):
+def to_Sum( name, offset="(0,0,0)", to="(0,0,0)", radius=1, opacity=0.6):
     return r"""
 \pic[shift={"""+ offset +"""}] at """+ to +""" 
     {Ball={
@@ -235,7 +237,7 @@ def to_Sum( name, offset="(0,0,0)", to="(0,0,0)", radius=2.5, opacity=0.6):
     };
 """
 
-def to_Mul( name, offset="(0,0,0)", to="(0,0,0)", radius=2.5, opacity=0.6):
+def to_Mul( name, offset="(0,0,0)", to="(0,0,0)", radius=1, opacity=0.6):
     return r"""
 \pic[shift={"""+ offset +"""}] at """+ to +""" 
     {Ball={

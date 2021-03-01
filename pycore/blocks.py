@@ -4,27 +4,28 @@ from .tikzeng import *
 # define some parameters
 # s_filer: output_image_size
 # n_filer: output_channels
-# height = depth = s_filer / SIZE_TO_HEIGHT
+# height = depth = s_filer / SIZE_TO_HEIGHTi
 # width = n_filer / CHANNELS_TO_WIDTH
 SIZE_TO_HEIGHT = 10
-CHANNELS_TO_WIDTH = 64
-REDUCTION = 16
+CHANNELS_TO_WIDTH = 128
 
 #define new block
-def block_SElayerMultiTask(name, bottom, n_filer=64, reduction=16, task=None):
+def block_SElayerMultiTask(name, bottom, n_filer=64, offset="(0, 0, 0)", reduction=16):
   lys = []
-  lys += [to_Pool(name="{}_avg_pool".format(name), to="({}-east)".format(bottom), width=1, height=1, depth=n_filer/CHANNELS_TO_WIDTH)]
+  lys += [to_Pool(name="{}_avg_pool".format(name), offset=offset, to="({}-east)".format(bottom), width=1, height=1, depth=n_filer/CHANNELS_TO_WIDTH)]
   # SequentialMultiTask
   lys += [
-    to_FcRelu(name="{}_fc1".format(name), s_filer=n_filer/REDUCTION, to="({}_avg_pool-east)".format(name), depth=n_filer/REDUCTION/CHANNELS_TO_WIDTH, caption=task),
-    to_FcSigmoid(name="{}_fc2".format(name), s_filer=n_filer, to="({}_fc1-east)".format(name), depth=n_filer/CHANNELS_TO_WIDTH),
+    to_FcRelu(name="{}_semantic_fc1".format(name), s_filer=n_filer/reduction, offset="(0,0,-3.5)", to="({}_avg_pool-east)".format(name), depth=n_filer/reduction/CHANNELS_TO_WIDTH, caption="semantic", fill="\SemanticConvColor"),
+    to_FcSigmoid(name="{}_semantic_fc2".format(name), s_filer=n_filer, to="({}_semantic_fc1-east)".format(name), depth=n_filer/CHANNELS_TO_WIDTH, fill="\SemanticConvColor"),
+    to_Mul(name="{}_semantic_mul".format(name), offset="(1,0,0)", to="({}_semantic_fc2-east)".format(name)),
+    to_FcRelu(name="{}_trav_fc1".format(name), s_filer=n_filer/reduction, offset="(0,0,3.5)", to="({}_avg_pool-east)".format(name), depth=n_filer/reduction/CHANNELS_TO_WIDTH, caption="traversability", fill="\TravConvColor"),
+    to_FcSigmoid(name="{}_trav_fc2".format(name), s_filer=n_filer, to="({}_trav_fc1-east)".format(name), depth=n_filer/CHANNELS_TO_WIDTH, fill="\TravConvColor"),
+    to_Mul(name="{}_trav_mul".format(name), offset="(1,0,0)", to="({}_trav_fc2-east)".format(name)),
   ]
-  lys += [to_Mul(name="{}_mul".format(name), to="({}_fc2-east)".format(name)),
-          to_skip(of=bottom, to="{}_mul".format(name))]
   return lys
 
 
-def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(1,0,0)", channels=(128,128), stride=1, caption=""):
+def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(0.5,0,0)", channels=(128,128), stride=1, caption=""):
     lys = []
 
     is_bottleneck = len(channels) ==3
@@ -65,12 +66,14 @@ def block_IdentityResidualBlock(name, bottom, s_filer=180, n_filer=64, offset="(
 
     if is_bottleneck:
         lys += layers[0:2]
-        lys += [to_Conv(name="{}_semantic".format(name), s_filer=s_filer, n_filer=channels[1], offset="(0,0,2.5)", to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT)]
+        lys += [to_Conv(name="{}_semantic".format(name), s_filer=s_filer, n_filer=channels[1], offset="(0,0,-2.5)", to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT, fill="\SemanticConvColor")]
+        lys += [to_Conv(name="{}_traversability".format(name), s_filer=s_filer, n_filer=channels[1], offset="(0,0,2.5)", to="({}_bn2-east)".format(name), width=channels[1]/CHANNELS_TO_WIDTH, height=s_filer/SIZE_TO_HEIGHT, depth=s_filer/SIZE_TO_HEIGHT, fill="\TravConvColor")]
         lys += layers[2]
         lys += [to_Sum(name="{}_sum".format(name), to="({}_conv2-east)".format(name))]
         lys += layers[3:]
-        lys += block_SElayerMultiTask("{}_se".format(name), bottom="{}_conv3".format(name), n_filer=channels[2], task="semantic")
-        lys += [to_Sum(name="{}_end".format(name), to="({}_se_mul-east)".format(name))]
+        lys += block_SElayerMultiTask("{}_se".format(name), bottom="{}_conv3".format(name), n_filer=channels[2])
+        lys += [to_Sum(name="{}_end".format(name), to="({}_se_semantic_mul-east)".format(name))]
+        lys += [to_Sum(name="{}_end".format(name), to="({}_se_trav_mul-east)".format(name))]
 
     return lys
 

@@ -50,7 +50,7 @@ for mod_id, num in enumerate(structure):
 
     if block_id == num-1:
       if mod_id > 3:
-        arch += [*block_IdentityResidualBlock("m{}_end".format(mod_id+2), bottom="m{}_end_end".format(mod_id+1), s_filer=current_size, n_filer=in_channels, channels=channels[mod_id], stride=stride),]
+        arch += [*block_IdentityResidualBlock("m{}_end".format(mod_id+2), offset="(0,0,{})".format(-3.5*(mod_id-4)), bottom="m{}_end_end".format(mod_id+1), s_filer=current_size, n_filer=in_channels, channels=channels[mod_id], stride=stride),]
       else:
         arch += [*block_IdentityResidualBlock("m{}_end".format(mod_id+2), bottom="m{}_b{}_end".format(mod_id+2, block_id), s_filer=current_size, n_filer=in_channels, channels=channels[mod_id], stride=stride),]
     elif block_id == 0:
