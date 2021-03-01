@@ -255,6 +255,12 @@ def to_connection( of, to):
 \draw [connection]  ("""+of+"""-east)    -- node {\midarrow} ("""+to+"""-west);
 """
 
+def to_connection_orthogonal(of, to, offset="(0,0,0)"):
+  return r"""
+  \draw [connection] ("""+of+"""-east) --node {\midarrow} ++"""+offset+""" --node {\midarrow} ("""+to+"""-west);
+"""
+
+
 def to_skip( of, to, pos=1.25):
     return r"""
 \path ("""+ of +"""-southeast) -- ("""+ of +"""-northeast) coordinate[pos="""+ str(pos) +"""] ("""+ of +"""-top) ;
